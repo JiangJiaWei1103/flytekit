@@ -752,6 +752,8 @@ class StructuredDatasetTransformerEngine(AsyncTypeTransformer[StructuredDataset]
                     sdt.format = file_format
 
                 sd_model = literals.StructuredDataset(
+                    # Get file not found error
+                    # uri="hihihi",
                     uri=uri,
                     metadata=StructuredDatasetMetadata(structured_dataset_type=sdt),
                 )
@@ -1016,7 +1018,10 @@ class StructuredDatasetTransformerEngine(AsyncTypeTransformer[StructuredDataset]
         #   t1(input_a: StructuredDataset)  # or
         #   t1(input_a: Annotated[StructuredDataset, my_cols])
         if issubclass(expected_python_type, StructuredDataset):
+            # We have lit and wants to convert to python value for task inference as input???
             sd = expected_python_type(
+                uri=lv.scalar.structured_dataset.uri,
+                # uri="abc",
                 dataframe=None,
                 # Note here that the type being passed in
                 metadata=metad,
