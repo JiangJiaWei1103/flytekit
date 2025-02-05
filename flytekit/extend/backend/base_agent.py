@@ -378,6 +378,7 @@ class AsyncAgentExecutorMixin:
             task_template=task_template,
             inputs=literal_map,
             output_prefix=output_prefix,
+            orig_inputs=inputs,
         )
 
         FlyteContextManager.add_signal_handler(partial(self.agent_signal_handler, resource_meta))

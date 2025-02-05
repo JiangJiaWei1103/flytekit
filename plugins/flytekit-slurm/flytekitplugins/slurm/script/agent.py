@@ -56,6 +56,14 @@ class SlurmScriptAgent(AsyncAgentBase):
             script = task_template.custom["script"]
             assert script != self.DUMMY_SCRIPT, "Please write the user-defined batch script content."
 
+            from flytekit.extras.tasks.shell import _PythonFStringInterpolizer
+
+            # Need this to be a dict
+            print(kwargs["orig_inputs"])
+            interpolizer = _PythonFStringInterpolizer()
+            script = interpolizer.interpolate(script, inputs=kwargs["orig_inputs"])
+            print(script)
+
             batch_script_path = self.REMOTE_PATH
             upload_script = True
         else:
