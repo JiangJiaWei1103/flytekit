@@ -40,9 +40,11 @@ class SlurmFunctionAgent(AsyncAgentBase):
         # Retrieve task config
         slurm_host = task_template.custom["slurm_host"]
         srun_conf = task_template.custom["srun_conf"]
+        script = task_template.custom["script"]
 
         # Construct srun command for Slurm cluster
-        cmd = _get_srun_cmd(srun_conf=srun_conf, entrypoint=" ".join(task_template.container.args))
+        cmd = _get_srun_cmd(srun_conf=srun_conf, entrypoint=" ".join(task_template.container.args), script=script)
+        print(cmd)
 
         # Run Slurm job
         if self._conn is None:
@@ -78,7 +80,7 @@ class SlurmFunctionAgent(AsyncAgentBase):
         self._conn = await asyncssh.connect(host=slurm_host)
 
 
-def _get_srun_cmd(srun_conf: Dict[str, str], entrypoint: str) -> str:
+def _get_srun_cmd(srun_conf: Dict[str, str], entrypoint: str, script: Optional[str] = None) -> str:
     """Construct Slurm srun command.
 
     Flyte entrypoint, pyflyte-execute, is run within a bash shell process.
@@ -98,16 +100,19 @@ def _get_srun_cmd(srun_conf: Dict[str, str], entrypoint: str) -> str:
     cmd.extend(["bash", "-c"])
     cmd = " ".join(cmd)
 
-    cmd += f""" '# Activate the pre-built virtual env
-        . /home/ubuntu/.cache/pypoetry/virtualenvs/demo-poetry-RLi6T71_-py3.12/bin/activate;
+    script = script.replace("{task.fn}", entrypoint)
+    cmd = f"""{cmd} '{script}'"""
 
-        # Run entrypoints in a subshell with virtual env activated,
-        # including pyflyte-fast-execute and pyflyte-execute
-        {entrypoint};
+    # cmd += f""" '# Activate the pre-built virtual env
+    #     . /home/ubuntu/.cache/pypoetry/virtualenvs/demo-poetry-RLi6T71_-py3.12/bin/activate;
 
-        # A trick to show Slurm job id on stdout
-        echo $SLURM_JOB_ID;'
-    """
+    #     # Run entrypoints in a subshell with virtual env activated,
+    #     # including pyflyte-fast-execute and pyflyte-execute
+    #     {entrypoint};
+
+    #     # A trick to show Slurm job id on stdout
+    #     echo $SLURM_JOB_ID;'
+    # """
 
     return cmd
 

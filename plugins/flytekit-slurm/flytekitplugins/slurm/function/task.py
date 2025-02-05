@@ -21,10 +21,12 @@ class SlurmFunction(object):
     Args:
         slurm_host: Slurm host name. We assume there's no default Slurm host now.
         srun_conf: Options of srun command.
+        script: User-defined script.
     """
 
     slurm_host: str
     srun_conf: Optional[Dict[str, str]] = None
+    script: Optional[str] = None
 
     def __post_init__(self):
         if self.srun_conf is None:
@@ -57,6 +59,7 @@ class SlurmFunctionTask(AsyncAgentExecutorMixin, PythonFunctionTask[SlurmFunctio
         return {
             "slurm_host": self.task_config.slurm_host,
             "srun_conf": self.task_config.srun_conf,
+            "script": self.task_config.script,
         }
 
     def execute(self, **kwargs) -> Any:
